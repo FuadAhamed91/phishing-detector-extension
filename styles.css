@@ -1,0 +1,100 @@
+/*
+ * Phishing Link Detector - tooltip styles.
+ *
+ * content.js injects a single <div class="phishing-tooltip"> next to the
+ * cursor while a link is hovered. Because this stylesheet is loaded into
+ * arbitrary third-party pages, the three properties that make a hover
+ * tooltip work at all are marked !important so page CSS cannot undo them:
+ *
+ *   position: fixed      -> placed from clientX/clientY, unaffected by scroll
+ *   z-index: 2147483647  -> max 32-bit value, sits above every page element
+ *   pointer-events: none -> the tooltip can never end up *under* the cursor;
+ *                           if it could, the link would receive mouseout, the
+ *                           tooltip would be removed, the link would receive
+ *                           mouseover again... and the badge would flicker.
+ */
+.phishing-tooltip {
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  pointer-events: none !important;
+
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 360px;
+  margin: 0;
+  padding: 7px 14px 7px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+  color: #ffffff;
+  text-align: left;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+  white-space: nowrap;
+
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28), 0 1px 3px rgba(0, 0, 0, 0.2);
+
+  /* Subtle fade-in: start invisible and slightly lowered; .visible eases in. */
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 160ms ease-out, transform 160ms ease-out;
+}
+
+.phishing-tooltip.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Status glyph. Drawn from CSS so content.js never has to touch innerHTML. */
+.phishing-tooltip::before {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center;
+}
+
+/* Percentage pill on the right-hand side of the badge. */
+.phishing-tooltip__score {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.22);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+/* Green sleek badge: score >= 75 */
+.phishing-tooltip.safe {
+  background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+}
+.phishing-tooltip.safe::before {
+  content: "\2713"; /* check mark */
+}
+
+/* Red danger badge: score < 75 */
+.phishing-tooltip.warning {
+  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+}
+.phishing-tooltip.warning::before {
+  content: "\26A0"; /* warning sign */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .phishing-tooltip {
+    transition: none;
+    transform: none;
+  }
+}
