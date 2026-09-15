@@ -1,0 +1,14 @@
+{
+  "name": "phishing-detector-extension",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Chrome extension (Manifest V3) that scores links for phishing risk on hover and shows a safety tooltip.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT"
+}
