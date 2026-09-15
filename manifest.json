@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Phishing Link Detector",
+  "version": "1.0.0",
+  "description": "Hover over any link to see a heuristic safety score. Suspicious links get a red warning badge, trusted ones a green one.",
+  "permissions": ["activeTab"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}
