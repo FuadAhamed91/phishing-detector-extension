@@ -21,11 +21,12 @@ test('registers exactly one onMessage listener', () => {
   assert.equal(typeof listener, 'function');
 });
 
-test('answers ANALYZE_URL synchronously with a score and status', () => {
+test('answers ANALYZE_URL synchronously with the full verdict', () => {
   const { response, returned } = send({ type: 'ANALYZE_URL', url: 'https://github.com/' });
   assert.equal(returned, undefined, 'must not return true: the channel is not kept open');
-  assert.equal(typeof response.score, 'number');
-  assert.ok(['safe', 'warning'].includes(response.status));
+  assert.deepEqual(response, {
+    status: 'safe', score: 100, host: 'github.com', url: 'https://github.com/', via: [], reasons: [],
+  });
 });
 
 test('ignores unrelated messages', () => {
