@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phishing Link Detector - demo links</title>
+<style>
+  body { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; max-width: 760px; margin: 48px auto; padding: 0 24px; color: #1f2937; line-height: 1.6; }
+  h1 { font-size: 22px; margin-bottom: 4px; }
+  p.hint { color: #6b7280; margin-top: 0; }
+  h2 { font-size: 15px; letter-spacing: .08em; text-transform: uppercase; color: #6b7280; margin: 36px 0 8px; }
+  ul { list-style: none; padding: 0; margin: 0; }
+  li { padding: 10px 0; border-bottom: 1px solid #e5e7eb; display: flex; gap: 16px; align-items: baseline; }
+  li a { color: #1d4ed8; font-family: ui-monospace, Consolas, monospace; font-size: 14px; }
+  li span { color: #6b7280; font-size: 14px; margin-left: auto; text-align: right; }
+</style>
+</head>
+<body>
+  <h1>Phishing Link Detector - demo links</h1>
+  <p class="hint">Load the extension, then rest the cursor on a link for half a second. None of these links need to be clicked; the fake ones do not exist.</p>
+
+  <h2>Legitimate</h2>
+  <ul>
+    <li><a href="https://github.com/">https://github.com/</a><span>clean</span></li>
+    <li><a href="https://accounts.google.com/">https://accounts.google.com/</a><span>real login page</span></li>
+    <li><a href="https://login.microsoftonline.com/">https://login.microsoftonline.com/</a><span>real login page</span></li>
+    <li><a href="https://www.paypal.com/signin">https://www.paypal.com/signin</a><span>real PayPal</span></li>
+  </ul>
+
+  <h2>Phishing patterns</h2>
+  <ul>
+    <li><a href="https://paypal.com.account-services.net/login">https://paypal.com.account-services.net/login</a><span>brand in subdomain</span></li>
+    <li><a href="https://secure-paypal-verify.com/">https://secure-paypal-verify.com/</a><span>brand + keywords</span></li>
+    <li><a href="https://amaz0n.com/">https://amaz0n.com/</a><span>digit look-alike</span></li>
+    <li><a href="https://rnicrosoft.com/">https://rnicrosoft.com/</a><span>rn looks like m</span></li>
+    <li><a href="https://xn--80ak6aa92e.com/">https://аррӏе.com/</a><span>Cyrillic letters, looks like apple.com</span></li>
+    <li><a href="https://google.com@evil.com/">https://google.com@evil.com/</a><span>@ trick</span></li>
+    <li><a href="https://www.google.com/url?q=https://evil.xyz&amp;source=gmail">https://www.google.com/url?q=https://evil.xyz</a><span>Gmail-style redirect</span></li>
+    <li><a href="http://192.168.1.10/login">http://192.168.1.10/login</a><span>raw IP, no HTTPS</span></li>
+    <li><a href="https://my-bank-secure-login.xyz/">https://my-bank-secure-login.xyz/</a><span>abused TLD</span></li>
+    <li><a href="https://bit.ly/3xyz">https://bit.ly/3xyz</a><span>shortener</span></li>
+  </ul>
+</body>
+</html>
