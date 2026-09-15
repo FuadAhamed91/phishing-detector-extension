@@ -3,7 +3,7 @@
  *
  * Watches every <a> on the page through event delegation, waits until the
  * cursor has rested on a link for HOVER_DELAY_MS, asks the background service
- * worker to score the link, and renders the verdict as a floating badge next
+ * worker to score the link, and renders the verdict as a floating card next
  * to the cursor. Everything is torn down again on mouseout.
  */
 (() => {
@@ -13,7 +13,16 @@
   const CURSOR_OFFSET_X = 14;  // gap between the cursor and the tooltip
   const CURSOR_OFFSET_Y = 18;
   const VIEWPORT_MARGIN = 8;   // keep the tooltip at least this far from the edges
+  const MAX_REASONS = 3;       // the engine sorts reasons heaviest first
   const MESSAGE_TYPE = 'ANALYZE_URL';
+
+  const LABELS = {
+    safe: 'Looks safe',
+    caution: 'Use caution',
+    warning: 'Suspicious link',
+    unknown: 'Shortened link',
+  };
+  const STATUSES = Object.keys(LABELS);
 
   // document.body is null for XML/SVG documents; fall back to the root element.
   const root = document.body || document.documentElement;
@@ -22,7 +31,7 @@
   let activeLink = null;   // <a> currently under the cursor (if scoreable)
   let hoverTimer = null;   // pending debounce timer
   let requestId = 0;       // lets late responses for an old link be ignored
-  let tooltip = null;      // { el, label, score, width, height }
+  let tooltip = null;      // { el, label, score, host, reasons, width, height }
   const cursor = { x: 0, y: 0 };
 
   /* ---------- link filtering ---------- */
@@ -52,15 +61,23 @@
     const el = document.createElement('div');
     el.className = 'phishing-tooltip';
 
+    const head = document.createElement('div');
+    head.className = 'phishing-tooltip__head';
     const label = document.createElement('span');
     label.className = 'phishing-tooltip__label';
-
     const score = document.createElement('span');
     score.className = 'phishing-tooltip__score';
+    head.append(label, score);
 
-    el.append(label, score);
+    const host = document.createElement('div');
+    host.className = 'phishing-tooltip__host';
+
+    const reasons = document.createElement('ul');
+    reasons.className = 'phishing-tooltip__reasons';
+
+    el.append(head, host, reasons);
     root.appendChild(el);
-    return { el, label, score, width: 0, height: 0 };
+    return { el, label, score, host, reasons, width: 0, height: 0 };
   }
 
   function positionTooltip() {
@@ -82,15 +99,35 @@
     tooltip.el.style.top = `${Math.round(y)}px`;
   }
 
-  function showTooltip({ score, status }) {
+  /** Renders a verdict from the background script: { status, score, host, reasons, via }. */
+  function showTooltip(verdict) {
     if (!tooltip || !tooltip.el.isConnected) tooltip = createTooltip();
-    const { el, label } = tooltip;
-    const isSafe = status === 'safe';
+    const { el } = tooltip;
+    const status = STATUSES.includes(verdict.status) ? verdict.status : 'warning';
+    const hasScore = typeof verdict.score === 'number';
 
-    el.classList.toggle('safe', isSafe);
-    el.classList.toggle('warning', !isSafe);
-    label.textContent = isSafe ? 'Safe link' : 'Suspicious link';
-    tooltip.score.textContent = `${score}%`;
+    for (const name of STATUSES) el.classList.toggle(name, name === status);
+    tooltip.label.textContent = LABELS[status];
+    tooltip.score.textContent = hasScore ? `${verdict.score}%` : '';
+    tooltip.score.hidden = !hasScore;
+    tooltip.host.textContent = verdict.host || '';
+    tooltip.host.hidden = !verdict.host;
+
+    // Everything is inserted as text: nothing from the page or the URL is ever
+    // parsed as HTML.
+    const lines = (Array.isArray(verdict.reasons) ? verdict.reasons : [])
+      .slice(0, MAX_REASONS)
+      .map((reason) => (typeof reason === 'string' ? reason : reason.text))
+      .filter(Boolean);
+    for (const hop of Array.isArray(verdict.via) ? verdict.via : []) {
+      lines.push(`Redirected through ${hop}`);
+    }
+    tooltip.reasons.replaceChildren(...lines.map((text) => {
+      const li = document.createElement('li');
+      li.textContent = text;
+      return li;
+    }));
+    tooltip.reasons.hidden = lines.length === 0;
 
     // Measure once per render; mousemove repositions without re-measuring.
     tooltip.width = el.offsetWidth;
@@ -112,11 +149,11 @@
 
   function requestAnalysis(anchor, url) {
     const id = ++requestId;
-    const onResponse = (response) => {
+    const onResponse = (verdict) => {
       if (chrome.runtime.lastError) return;                  // worker unavailable
       if (id !== requestId || anchor !== activeLink) return; // cursor has moved on
-      if (!response || typeof response.score !== 'number') return;
-      showTooltip(response);
+      if (!verdict || typeof verdict.status !== 'string') return;
+      showTooltip(verdict);
     };
     try {
       chrome.runtime.sendMessage({ type: MESSAGE_TYPE, url }, onResponse);
@@ -165,7 +202,7 @@
     clearHover();
   }
 
-  // Keeps the badge glued to the cursor while it travels along a long link.
+  // Keeps the card glued to the cursor while it travels along a long link.
   function onMouseMove(event) {
     if (!activeLink) return;
     cursor.x = event.clientX;
